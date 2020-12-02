@@ -23,18 +23,19 @@ class Query
 
     public function limit(int $limit):self
     {
+        $this->validateValueType($limit);
         $this->text_query .= " LIMIT $limit";
         return($this);
     }
 
-    public function where($condition)
+    public function where($condition):self
     {
         $where = array();
         if(is_array($condition))
         {
             foreach($condition as $key => $value)
             {
-                $value = $this->valueType($value);
+                $this->validateValueType($value);
                 array_push($where,$key .'='.$value);
             }
 
@@ -57,17 +58,14 @@ class Query
         return($this);
     }
 
-    private function valueType($value)
+    private function validateValueType(&$value)
     {
         if(is_string($value))
         {
-            return "'$value'";
+            $value = "'$value'";
         }
 
-        else if(is_numeric($value))
-        {
-            return $value;
-        }
+        return $value;
     }
 }
 

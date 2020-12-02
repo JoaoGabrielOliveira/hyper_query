@@ -1,5 +1,6 @@
 {
-    "name": "hypercode/query-maker",
+    "name": "hypercode/query",
+    "descrition":"With that, you can use PHP to create SQL query.",
     "type": "library",
     "authors": [
         {
