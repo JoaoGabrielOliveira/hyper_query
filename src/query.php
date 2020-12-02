@@ -5,6 +5,7 @@ namespace Hyper\Database;
 class Query
 {
     private $text_query;
+    private $bind_values;
 
     public function __toString()
     {
@@ -58,14 +59,45 @@ class Query
         return($this);
     }
 
+    public function insert(string $table, array $values):self
+    {
+        $columns = array_keys($values);
+        $columns_names = implode(',',$columns);
+
+        $values = implode(',',$this->bindValues($values));
+
+        $this->text_query = "INSERT INTO $table ($columns_names) VALUES ($values)";
+
+        return($this);
+    }
+
     private function validateValueType(&$value)
     {
         if(is_string($value))
         {
-            $value = "'$value'";
+            $function_pattern = "#\(((?:\[^\(\)\]++|(?R))*)\)#";
+
+            preg_match($function_pattern, $value, $match);
+
+            empty($match) ? $value = "'$value'" :  $match;
         }
 
         return $value;
+    }
+
+    private function bindValues(array &$data):array
+    {
+        #Inicial $data = ['nome' => 'Jonathan', 'idade' => 10, "criado_em" => "NOW()"];
+
+        $index = 0;
+        foreach($data as $key => $value)
+        {
+            $key = ":$key" . "$index";
+            $bind_values[$key] = $this->validateValueType($value);
+        }
+
+        #Esperado = [:nome1 => 'Jonathan', :idade1 => 10]
+        return $bind_values;
     }
 }
 

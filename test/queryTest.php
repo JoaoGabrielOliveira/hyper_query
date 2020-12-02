@@ -49,5 +49,13 @@ class QueryTest extends TestCase
         $query->select('tabela','*')->where(['id' => 5])->limit(1);
         $this->assertEquals('SELECT * FROM tabela WHERE id=5 LIMIT 1', $query);
     }
+
+    public function test_return_a_insert_query_with_single_data():void
+    {
+        $query = new Query;
+        $single_data=['nome' => 'Jonathan', 'idade' => 10, "criado_em" => "NOW()"];
+        $query->insert('tabela', $single_data);
+        $this->assertEquals('INSERT INTO tabela (nome,idade,criado_em) VALUES (\'Jonathan\',10,NOW())', $query);
+    }
 }
 ?>
