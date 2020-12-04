@@ -61,12 +61,13 @@ class Query
 
     public function insert(string $table, array $values):self
     {
-        $columns = array_keys($values);
-        $columns_names = implode(',',$columns);
+        if($this->isMultipleData($values))
+            $values =$this->createInsertQueryMultipleData($values);
 
-        $values = implode(',',$this->bindValues($values));
+        else
+            $values = $this->createInsertQuerySingleData($values);
 
-        $this->text_query = "INSERT INTO $table ($columns_names) VALUES ($values)";
+        $this->text_query = "INSERT INTO $table (" . $values[0] . ") VALUES " . $values[1];
 
         return($this);
     }
@@ -98,6 +99,49 @@ class Query
 
         #Esperado = [:nome1 => 'Jonathan', :idade1 => 10]
         return $bind_values;
+    }
+
+    private function isMultipleData(array $data)
+    {
+        foreach($data as $value)
+        {
+            if(is_array($value))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function createInsertQueryMultipleData(array $data):array
+    {
+        $firstKey = array_key_first($data);
+        $columns = array_keys($data[$firstKey]);
+        $columns_names = implode(',',$columns);
+
+        $values_text = "";
+        $index = 0;
+        $tamanho = count($data) - 1;
+        foreach($data as $value)
+        {
+            if($index == $tamanho)
+                $values_text .= "(" . implode(',',$this->bindValues($value)) . ")";
+            else
+                $values_text .= "(" . implode(',',$this->bindValues($value)) . "), ";
+            $index++;
+        }
+
+        return [$columns_names, $values_text];
+    }
+
+    private function createInsertQuerySingleData(array $data):array
+    {
+        $columns = array_keys($data);
+        $columns_names = implode(',',$columns);
+        $values_text = "(" . implode(',',$this->bindValues($data) ) . ")";
+
+        return [$columns_names, $values_text];
     }
 }
 

@@ -57,5 +57,16 @@ class QueryTest extends TestCase
         $query->insert('tabela', $single_data);
         $this->assertEquals('INSERT INTO tabela (nome,idade,criado_em) VALUES (\'Jonathan\',10,NOW())', $query);
     }
+
+    public function test_return_a_insert_query_with_multiple_data():void
+    {
+        $query = new Query;
+        $multiple_data=[
+            0 => ['nome' => 'Jonathan', 'idade' => 10, "criado_em" => "NOW()"],
+            "Segundo" => ['nome' => 'Jong', 'idade' => 20, "criado_em" => "NOW()"]
+        ];
+        $query->insert('tabela', $multiple_data);
+        $this->assertEquals('INSERT INTO tabela (nome,idade,criado_em) VALUES (\'Jonathan\',10,NOW()), (\'Jong\',20,NOW())', $query);
+    }
 }
 ?>
