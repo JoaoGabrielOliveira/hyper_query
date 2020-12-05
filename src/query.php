@@ -88,6 +88,12 @@ class Query
         return($this);
     }
 
+    public function delete(string $table):self
+    {
+        $this->text_query = "DELETE $table";
+        return $this;
+    }
+
     public function getValues():array
     {
         return $this->bind_values;

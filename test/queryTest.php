@@ -92,7 +92,17 @@ class QueryTest extends TestCase
         {
             $this->assertArrayHasKey($key, $query->getValues());
         }
-        
+    }
+
+    public function test_return_a_delete_query():void
+    {
+        $query = new Query;
+
+        $query->delete('tabela');
+        $this->assertEquals('DELETE tabela', $query);
+
+        $query->delete('tabela')->where(['id' => 1]);
+        $this->assertEquals('DELETE tabela WHERE id=1', $query);
     }
 }
 ?>
