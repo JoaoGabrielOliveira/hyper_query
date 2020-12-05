@@ -104,5 +104,19 @@ class QueryTest extends TestCase
         $query->delete('tabela')->where(['id' => 1]);
         $this->assertEquals('DELETE tabela WHERE id=1', $query);
     }
+
+    public function test_return_a_create_table_query():void
+    {
+        $query = new Query;
+
+        $query->create()->table()->
+        addColumn('ID', 'INT', 'PRIMARY KEY')->
+        addColumn('nome', 'VARCHAR(80)')->
+        addColumn('criado_em', 'DATE');
+        $this->assertEquals('CREATE tabela', $query);
+
+        $query->delete('tabela')->where(['id' => 1]);
+        $this->assertEquals('DELETE tabela WHERE id=1', $query);
+    }
 }
 ?>

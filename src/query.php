@@ -6,6 +6,7 @@ class Query
 {
     private $text_query;
     private $bind_values;
+    private $columns;
 
     public function __toString()
     {
@@ -91,6 +92,31 @@ class Query
     public function delete(string $table):self
     {
         $this->text_query = "DELETE $table";
+        return $this;
+    }
+
+    public function create():self
+    {
+        $this->text_query = 'CREATE';
+        return $this;
+    }
+
+    public function table():self
+    {
+        $this->text_query .= ' TABLE ';
+        $this->columns = [];
+        return $this;
+    }
+
+    public function addColumn(string $title, string $type, string ...$params):self
+    {
+        $column = "$title $type " . implode(" ", $params);
+        array_push($this->columns, $column);
+
+        $pattern  = "/()/i";
+        $query = preg_replace($pattern, implode(' ', $this->columns) , $this->text_query);
+
+        $this->text_query = $query;
         return $this;
     }
 
