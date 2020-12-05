@@ -59,17 +59,38 @@ class Query
         return($this);
     }
 
-    public function insert(string $table, array $values):self
+    public function insert(string $table, array $values, bool $bind_value = false):self
     {
         if($this->isMultipleData($values))
-            $values =$this->createInsertQueryMultipleData($values);
+        {
+            $values = $this->createInsertQueryMultipleData($values);
+            if ($bind_value)
+            {
+                $values[1] = "";
+                $values[1] .= '(' . implode(",", array_keys($values[2][0])) . ')';
+                $size = count($values[2]);
+                for($i = 1; $i < $size; $i++)
+                {
+                    $values[1] .= ',(' . implode(",", array_keys($values[2][$i])) . ')';
+                }
+            }
+        }
 
         else
+        {
             $values = $this->createInsertQuerySingleData($values);
+            if ($bind_value)
+                $values[1] = '(' . implode(",", array_keys($values[2])) . ')';
+        }
 
         $this->text_query = "INSERT INTO $table (" . $values[0] . ") VALUES " . $values[1];
-
+        $this->bind_values=$values[2];
         return($this);
+    }
+
+    public function getValues():array
+    {
+        return $this->bind_values;
     }
 
     private function validateValueType(&$value)
@@ -86,18 +107,14 @@ class Query
         return $value;
     }
 
-    private function bindValues(array &$data):array
+    private function bindValues(array $data, int $index = 0):array
     {
-        #Inicial $data = ['nome' => 'Jonathan', 'idade' => 10, "criado_em" => "NOW()"];
-
-        $index = 0;
         foreach($data as $key => $value)
         {
             $key = ":$key" . "$index";
             $bind_values[$key] = $this->validateValueType($value);
         }
 
-        #Esperado = [:nome1 => 'Jonathan', :idade1 => 10]
         return $bind_values;
     }
 
@@ -122,26 +139,30 @@ class Query
 
         $values_text = "";
         $index = 0;
-        $tamanho = count($data) - 1;
+        $size = count($data) - 1;
+        $bind_values = array();
         foreach($data as $value)
         {
-            if($index == $tamanho)
-                $values_text .= "(" . implode(',',$this->bindValues($value)) . ")";
+            $bind_value = $this->bindValues($value,$index);
+            if($index == $size)
+                $values_text .= "(" . implode(',',$bind_value) . ")";
             else
-                $values_text .= "(" . implode(',',$this->bindValues($value)) . "), ";
+                $values_text .= "(" . implode(',',$bind_value) . "), ";
+            array_push($bind_values,$bind_value);
             $index++;
         }
 
-        return [$columns_names, $values_text];
+        return [$columns_names, $values_text,$bind_values];
     }
 
     private function createInsertQuerySingleData(array $data):array
     {
         $columns = array_keys($data);
         $columns_names = implode(',',$columns);
-        $values_text = "(" . implode(',',$this->bindValues($data) ) . ")";
+        $bind_value = $this->bindValues($data);
+        $values_text = "(" . implode(',',$bind_value) . ")";
 
-        return [$columns_names, $values_text];
+        return [$columns_names, $values_text,$bind_value];
     }
 }
 
