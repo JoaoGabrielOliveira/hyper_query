@@ -57,5 +57,15 @@ class QueryTest extends TestCase
         $query->insert('tabela', $single_data);
         $this->assertEquals('INSERT INTO tabela (nome,idade,criado_em) VALUES (\'Jonathan\',10,NOW())', $query);
     }
+
+    public function test_must_return_a_update_query():void
+    {
+        $query = new Query;
+        $query->update('tabela')
+            ->set('nome','Jonathan')
+            ->set('idade',10)
+            ->set('atualizado','NOW()')->where("ID = 1");
+        $this->assertEquals('UPDATE tabela SET nome=\'Jonathan\', idade=10, atualizado=NOW()', $query);
+    }
 }
 ?>

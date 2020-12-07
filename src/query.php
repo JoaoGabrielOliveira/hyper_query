@@ -2,6 +2,8 @@
 
 namespace Hyper\Database;
 
+use Exception;
+
 class Query
 {
     private $text_query;
@@ -71,6 +73,28 @@ class Query
         return($this);
     }
 
+    public function update(string $table):self
+    {
+        $this->text_query = "UPDATE $table";
+        return $this;
+    }
+
+    public function set(string $field, string $value):self
+    {
+
+        if($this->queryHas('UPDATE') > 0)
+        {
+            $this->validateValueType($value);
+            $this->queryHas('SET') ?
+                $this->text_query .= ",$field=$value" :
+                $this->text_query .= " SET $field=$value";
+        }
+        else
+            throw new Exception('Use this function afteruse UPDATE function');
+
+        return $this;
+    }
+
     private function validateValueType(&$value)
     {
         if(is_string($value))
@@ -98,6 +122,12 @@ class Query
 
         #Esperado = [:nome1 => 'Jonathan', :idade1 => 10]
         return $bind_values;
+    }
+
+    private function queryHas(string $query):bool
+    {
+        $pattern = "/$query/i";
+        return preg_match($pattern, $this->text_query) > 0 ? true : false;
     }
 }
 
