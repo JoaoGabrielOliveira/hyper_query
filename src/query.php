@@ -15,13 +15,13 @@ class Query
         return (string)$this->text_query;
     }
 
-    public function select(string $table_name, $collumns = '*'):self
+    public function select(string $table_name, $columns = '*'):self
     {
-        if(is_array($collumns))
+        if(is_array($columns))
         {
-            $collumns = implode(',',$collumns);
+            $columns = implode(',',$columns);
         }
-        $this->text_query = "SELECT $collumns FROM $table_name";
+        $this->text_query = "SELECT $columns FROM $table_name";
         return($this);
     }
 
@@ -121,13 +121,19 @@ class Query
 
     public function create():self
     {
-        $this->text_query = 'CREATE';
+        $this->text_query = 'CREATE ';
+        return $this;
+    }
+
+    public function drop():self
+    {
+        $this->text_query = 'DROP ';
         return $this;
     }
 
     public function table(string $table):self
     {
-        $this->text_query .= " TABLE $table ";
+        $this->text_query .= "TABLE $table";
         $this->columns = [];
         return $this;
     }
@@ -137,10 +143,14 @@ class Query
         $column = "$title $type " . implode(" ", $params);
         array_push($this->columns, $column);
 
-        $pattern  = "/()/i";
-        $query = preg_replace($pattern, implode(' ', $this->columns) , $this->text_query);
+        $columns = implode(',', $this->columns);
+        
+        $pattern  = "/(CREATE)\s(TABLE)\s(\w*)/";
+        preg_match($pattern,$this->text_query,$match);
 
-        $this->text_query = $query;
+        $query = $match[0];
+
+        $this->text_query = "$query ($columns)";
         return $this;
     }
 

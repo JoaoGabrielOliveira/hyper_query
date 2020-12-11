@@ -117,14 +117,14 @@ class QueryTest extends TestCase
     {
         $query = new Query;
 
+        $query->create()->table();
+        $this->assertEquals('CREATE TABLE tabela', $query);
+
         $query->create()->table()->
         addColumn('ID', 'INT', 'PRIMARY KEY')->
         addColumn('nome', 'VARCHAR(80)')->
         addColumn('criado_em', 'DATE');
-        $this->assertEquals('CREATE tabela', $query);
-
-        $query->delete('tabela')->where(['id' => 1]);
-        $this->assertEquals('DELETE tabela WHERE id=1', $query);
+        $this->assertEquals('CREATE TABLE tabela (ID INT PRIMARY KEY,nome VARCHAR(80), criado_em DATE)', $query);
     }
 }
 ?>
