@@ -10,6 +10,8 @@ class Query
     private $bind_values;
     private $columns;
 
+    use Query\Helper;
+
     public function __toString()
     {
         return (string)$this->text_query;
@@ -22,43 +24,6 @@ class Query
             $columns = implode(',',$columns);
         }
         $this->text_query = "SELECT $columns FROM $table_name";
-        return($this);
-    }
-
-    public function limit(int $limit):self
-    {
-        $this->validateValueType($limit);
-        $this->text_query .= " LIMIT $limit";
-        return($this);
-    }
-
-    public function where($condition):self
-    {
-        $where = array();
-        if(is_array($condition))
-        {
-            foreach($condition as $key => $value)
-            {
-                $this->validateValueType($value);
-                array_push($where,$key .'='.$value);
-            }
-
-            $where = ' WHERE ' . implode(' AND ',$where);
-        }
-
-        else if(is_string($condition) && $condition != '')
-        {
-            strpos($condition, 'WHERE') === true ?
-            $where = 'WHERE ' . $condition : $where = $condition;
-        }
-
-        else
-        {
-            throw new InvalidArgumentException('Condition is not a string or a array.');
-        }
-
-        $this->text_query .= $where;
-
         return($this);
     }
 
@@ -108,7 +73,7 @@ class Query
                 $this->text_query .= " SET $field=$value";
         }
         else
-            throw new Exception('Use this function afteruse UPDATE function');
+            throw new Exception('Use this function after use UPDATE function');
 
         return $this;
     }
@@ -154,87 +119,56 @@ class Query
         return $this;
     }
 
-    public function getValues():array
+    public function where($condition):self
     {
-        return $this->bind_values;
+        $this->queryHasWhere();
+        if (!$this->queryHas("SELECT"))
+            throw new Exception('Para realizar o WHERE, é necessario que tenha um SELECT');
+
+        if(is_array($condition))
+            $this->conditionWithArray($condition);
+
+        else if(is_string($condition))
+            $this->conditionWithString($condition);
+
+        return $this;
     }
 
-    private function validateValueType(&$value)
+    public function and($condition = null):self
     {
-        if(is_string($value))
-        {
-            $function_pattern = "#\(((?:\[^\(\)\]++|(?R))*)\)#";
-
-            preg_match($function_pattern, $value, $match);
-
-            empty($match) ? $value = "'$value'" :  $match;
-        }
-
-        return $value;
+        $this->text_query .= ' AND ';
+        if(!is_null($condition)) $this->where($condition);
+        return $this;
     }
 
-    private function bindValues(array $data, int $index = 0):array
+    public function or($condition = null):self
     {
-        foreach($data as $key => $value)
-        {
-            $key = ":$key" . "$index";
-            $bind_values[$key] = $this->validateValueType($value);
-        }
-
-        return $bind_values;
+        $this->text_query .= ' OR ';
+        if(!is_null($condition)) $this->where($condition);
+        return $this;
     }
 
-    private function queryHas(string $query):bool
+    public function between($column,$min,$max):self
     {
-        $pattern = "/$query/i";
-        return preg_match($pattern, $this->text_query) > 0 ? true : false;
+        $this->queryHasWhere();
+        $this->validateValueType($min);
+        $this->validateValueType($max);
+        $this->text_query .= " $column BETWEEN($min,$max)";
+        return $this;
     }
 
-    private function isMultipleData(array $data)
+    public function limit(int $limit):self
     {
-        foreach($data as $value)
-        {
-            if(is_array($value))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        $this->validateValueType($limit);
+        $this->text_query .= " LIMIT $limit";
+        return $this;
     }
 
-    private function createInsertQueryMultipleData(array $data):array
+    public function offset(int $offset):self
     {
-        $firstKey = array_key_first($data);
-        $columns = array_keys($data[$firstKey]);
-        $columns_names = implode(',',$columns);
-
-        $values_text = "";
-        $index = 0;
-        $size = count($data) - 1;
-        $bind_values = array();
-        foreach($data as $value)
-        {
-            $bind_value = $this->bindValues($value,$index);
-            if($index == $size)
-                $values_text .= "(" . implode(',',$bind_value) . ")";
-            else
-                $values_text .= "(" . implode(',',$bind_value) . "), ";
-            array_push($bind_values,$bind_value);
-            $index++;
-        }
-
-        return [$columns_names, $values_text,$bind_values];
-    }
-
-    private function createInsertQuerySingleData(array $data):array
-    {
-        $columns = array_keys($data);
-        $columns_names = implode(',',$columns);
-        $bind_value = $this->bindValues($data);
-        $values_text = "(" . implode(',',$bind_value) . ")";
-
-        return [$columns_names, $values_text,$bind_value];
+        $this->validateValueType($offset);
+        $this->text_query .= " OFFSET $offset";
+        return $this;
     }
 }
 
