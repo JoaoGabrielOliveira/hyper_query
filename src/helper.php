@@ -33,9 +33,11 @@ trait Helper
         return preg_match($pattern, $this->text_query) > 0 ? true : false;
     }
 
-    private function queryHasWhere()
+    private function findOrAddToQuery(string $query)
     {
-        !$this->queryHas('WHERE') ? $this->text_query .= ' WHERE ' : $this;
+        if(!$this->queryHas($query))
+            $this->text_query .= " $query ";
+        return null;
     }
 
     private function isMultipleData(array $data)

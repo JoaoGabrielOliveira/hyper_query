@@ -7,7 +7,7 @@ use Exception;
 class Query
 {
     private $text_query;
-    private $bind_values;
+    private array $values = [];
     private $columns;
 
     use Query\Helper;
@@ -27,33 +27,31 @@ class Query
         return($this);
     }
 
-    public function insert(string $table, array $values, bool $bind_value = false):self
+    public function insert(string $table, array $columns = [], array $values = []):self
     {
-        if($this->isMultipleData($values))
+        $columns = empty($columns) ? '' : '(' . implode(',',$columns) . ')';
+        $this->text_query = "INSERT INTO $table $columns";
+        return $this;
+    }
+
+    public function addValue(...$values)
+    {
+        $this->findOrAddToQuery('VALUES');
+        array_push($this->values, $values);
+
+        for($i = 0; $i < count($this->values); $i++)
         {
-            $values = $this->createInsertQueryMultipleData($values);
-            if ($bind_value)
-            {
-                $values[1] = "";
-                $values[1] .= '(' . implode(",", array_keys($values[2][0])) . ')';
-                $size = count($values[2]);
-                for($i = 1; $i < $size; $i++)
-                {
-                    $values[1] .= ',(' . implode(",", array_keys($values[2][$i])) . ')';
-                }
-            }
+            $this->validateValueType($data);
+            echo $data;
         }
 
-        else
+        $query_values = [];
+        foreach($this->values as $value)
         {
-            $values = $this->createInsertQuerySingleData($values);
-            if ($bind_value)
-                $values[1] = '(' . implode(",", array_keys($values[2])) . ')';
+            $query_values[] = '('. implode(',',$value) .')';
         }
 
-        $this->text_query = "INSERT INTO $table (" . $values[0] . ") VALUES " . $values[1];
-        $this->bind_values=$values[2];
-        return($this);
+        $this->text_query .= implode(',',$query_values);
     }
 
     public function update(string $table):self
@@ -121,7 +119,7 @@ class Query
 
     public function where($condition):self
     {
-        $this->queryHasWhere();
+        $this->findOrAddToQuery('WHERE');
         if (!$this->queryHas("SELECT"))
             throw new Exception('Para realizar o WHERE, é necessario que tenha um SELECT');
 
@@ -150,7 +148,7 @@ class Query
 
     public function between($column,$min,$max):self
     {
-        $this->queryHasWhere();
+        $this->findOrAddToQuery('WHERE');
         $this->validateValueType($min);
         $this->validateValueType($max);
         $this->text_query .= " $column BETWEEN($min,$max)";
