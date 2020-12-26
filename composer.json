@@ -14,7 +14,7 @@
 
     "autoload": {
         "psr-4": {
-            "Hyper\\Database\\":["src/"]
+            "Hyper\\Useful\\":["src/"]
         }
     },
     "require-dev": {

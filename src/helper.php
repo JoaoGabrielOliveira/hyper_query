@@ -1,6 +1,6 @@
 <?php
-namespace Hyper\Database\Query;
-trait Helper
+namespace Hyper\Useful\Query;
+trait Helpers
 {
     private function validateValueType(&$value)
     {

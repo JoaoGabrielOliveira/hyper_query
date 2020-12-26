@@ -1,6 +1,6 @@
 <?php
 
-namespace Hyper\Database;
+namespace Hyper\Useful;
 
 use Exception;
 
@@ -151,7 +151,7 @@ class Query
         $this->findOrAddToQuery('WHERE');
         $this->validateValueType($min);
         $this->validateValueType($max);
-        $this->text_query .= " $column BETWEEN($min,$max)";
+        $this->text_query .= " $column BETWEEN $min AND $max";
         return $this;
     }
 
