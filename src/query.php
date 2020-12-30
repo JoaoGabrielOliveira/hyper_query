@@ -10,7 +10,7 @@ class Query
     private array $values = [];
     private $columns;
 
-    use Query\Helper;
+    use Query\Helpers;
 
     public function __toString()
     {
@@ -27,7 +27,7 @@ class Query
         return($this);
     }
 
-    public function insert(string $table, array $columns = [], array $values = []):self
+    public function insert(string $table, array $columns = []):self
     {
         $columns = empty($columns) ? '' : '(' . implode(',',$columns) . ')';
         $this->text_query = "INSERT INTO $table $columns";
