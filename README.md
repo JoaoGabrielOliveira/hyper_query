@@ -1,7 +1,7 @@
 # Hyper Query
 
 This project is, basically, a SQL query constructor.
-With that, you can use PHP to create SQL query with a mor practical 
+With that, you can use PHP to create SQL query with a more practical method practical 
 
 
 ## Exemples of SELECT
