@@ -128,5 +128,10 @@ trait Helpers
 
         $this->text_query .= $query;
     }
+
+    protected function WhereCanBeUsed():bool
+    {
+        return !$this->queryHas("SELECT") || !$this->queryHas("SELECT") || !$this->queryHas("SELECT");
+    }
 }
 ?>

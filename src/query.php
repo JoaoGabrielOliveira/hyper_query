@@ -1,9 +1,7 @@
 <?php
 
 namespace Hyper\Useful;
-
 use Exception;
-
 class Query
 {
     private $text_query;
@@ -120,7 +118,7 @@ class Query
     public function where($condition):self
     {
         $this->findOrAddToQuery('WHERE');
-        if (!$this->queryHas("SELECT"))
+        if ($this->WhereCanBeUsed())
             throw new Exception('Para realizar o WHERE, é necessario que tenha um SELECT');
 
         if(is_array($condition))
